@@ -80,6 +80,7 @@ def video_loop():
             # Run YOLO detection + tracking
             results = model.track(
                 frame,
+                # stream=True,
                 persist=True,
                 classes=[0, 1, 2, 7],        # 0 = person, 1 = bicycle, 2 = car, 7 = truck
                 verbose=False      
@@ -120,7 +121,7 @@ def video_loop():
 
                     # check if object moved from prev frame to current frame
                     if track_id in class_prev_centers[class_name]:
-                        if (abs(class_prev_centers[class_name][track_id] - cx) > 10) & (class_prev_centers[class_name][track_id] != -1):
+                        if (abs(class_prev_centers[class_name][track_id] - cx) > 1) & (class_prev_centers[class_name][track_id] != -1):
                             class_counters[class_name] += 1
                             print(f"{class_name.capitalize()} ID {track_id} counted")
                             # save image of counted object
@@ -195,11 +196,10 @@ def objects_image(filename):
 @app.route("/objects_history_images")
 def objects_history_images():
     folder = "objects"
-    entries = sorted(
-        [f for f in os.listdir(folder) if f.lower().endswith((".jpg", ".jpeg", ".png"))],
-        reverse=True
-    )
-    return jsonify(entries)
+    files = [f for f in os.listdir(folder) if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+    # Sort by timestamp in filename (YYYYMMDD_HHMMSS format)
+    files.sort(key=lambda f: f.split('_')[1:3], reverse=True)
+    return jsonify(files)
 
 
 if __name__ == "__main__":
