@@ -13,7 +13,6 @@
 
     <h1 class="text-4xl font-bold text-gray-800 mb-6">CarCounter</h1>
 
-    <!-- Top row: live feed + counter -->
     <div class="flex flex-wrap gap-6 mb-6">
         
 
@@ -49,9 +48,7 @@
 
 <script>
     let history_count;
-    // ------------------------
     // Update live counter
-    // ------------------------
     async function updateCount() {
         const res = await fetch('/count');
         const data = await res.json();
@@ -60,9 +57,8 @@
         document.getElementById('bicycle-count').innerText = data.bicycle_count;
     }
 
-    // ------------------------
     // Update live frame
-    // ------------------------
+
     function updateFrame() {
         const img = document.getElementById('live-frame');
         if (img) {
@@ -71,9 +67,7 @@
     }
 
 
-    // ------------------------
     // Load history from server
-    // ------------------------
      async function loadHistoryImages() {
         const res = await fetch('/objects_history_images');
         const data = await res.json();
@@ -119,15 +113,10 @@
         });
     }
 
-    setInterval(loadHistoryImages, 5000); // refresh every 5s
     loadHistoryImages(); // initial load
     updateCount(); // initial load
     updateFrame(); // initial load
-
-
-    // ------------------------
-    // Intervals
-    // ------------------------
+    setInterval(loadHistoryImages, 5000); // refresh every 5s
     setInterval(updateCount, 5000);
     setInterval(updateFrame, 1000);
 
