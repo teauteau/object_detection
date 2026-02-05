@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarCounter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<div class="container mx-auto p-6">
+
+    <h1 class="text-4xl font-bold text-gray-800 mb-6">CarCounter</h1>
+
+    <!-- Top row: live feed + counter -->
+    <div class="flex flex-wrap gap-6 mb-6">
+        
+
+        <!-- Counter -->
+        <div class="bg-white shadow-lg rounded-xl p-4 flex flex-col justify-center items-center w-64 flex-1">
+            <p class="text-gray-500 mb-2">Counters</p>
+            <p>Cars: </p><p id="car-count" class="text-5xl font-extrabold text-green-600">{{ car_count }}</p>
+            <p>Persons: </p><p id="person-count" class="text-5xl font-extrabold text-blue-600">{{ person_count }}</p>
+            <p>Bicycles: </p><p id="bicycle-count" class="text-5xl font-extrabold text-yellow-600">{{ bicycle_count }}</p>
+
+        </div>
+
+        <!-- Live feed -->
+        <div class="bg-white shadow-lg rounded-xl p-4 w-1/6 flex-1">
+            <h2 class="text-2xl font-semibold mb-4">Live Camera Feed</h2>
+            {% if frame %}
+            <img id="live-frame" src="{{ url_for('frame') }}" alt="Live feed" class="rounded-lg shadow-md mx-auto">
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="flex flex-wrap gap-6 mb-6">
+        <!-- History of saved cars -->
+        <div class="bg-white shadow-lg rounded-xl p-6 flex-1">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">History</h2>
+            <div id="objects-history" class="grid grid-cols-4 gap-4 max-h-96 overflow-y-auto"></div>
+        </div>
+        
+
+    </div>
+
+</div>
+
+<script>
+    let history_count;
+    // ------------------------
+    // Update live counter
+    // ------------------------
+    async function updateCount() {
+        const res = await fetch('/count');
+        const data = await res.json();
+        document.getElementById('car-count').innerText = data.car_count;
+        document.getElementById('person-count').innerText = data.person_count;
+        document.getElementById('bicycle-count').innerText = data.bicycle_count;
+    }
+
+    // ------------------------
+    // Update live frame
+    // ------------------------
+    function updateFrame() {
+        const img = document.getElementById('live-frame');
+        if (img) {
+            img.src = '/frame?' + new Date().getTime(); // avoid caching
+        }
+    }
+
+
+    // ------------------------
+    // Load history from server
+    // ------------------------
+     async function loadHistoryImages() {
+        const res = await fetch('/objects_history_images');
+        const data = await res.json();
+        const container = document.getElementById('objects-history');
+        const new_history_count = data.length;
+
+        if (new_history_count !== history_count) {
+            history_count = new_history_count;
+            container.innerHTML = '';
+            data.forEach(filename => {
+                    const img = document.createElement('img');
+                    img.src = `/objects/${filename}?t=${new Date().getTime()}`; // prevent caching
+                    img.alt = filename;
+                    // Add border based on object type in filename
+                    let borderClass = '';
+                    if (filename.toLowerCase().includes('car')) {
+                        borderClass = 'border-4 border-green-500';
+                    } else if (filename.toLowerCase().includes('person')) {
+                        borderClass = 'border-4 border-blue-500';
+                    } else if (filename.toLowerCase().includes('bicycle')) {
+                        borderClass = 'border-4 border-yellow-500';
+                    } else {
+                        borderClass = 'border-4 border-gray-400';
+                    }
+                    img.className = `rounded shadow-md w-full object-cover ${borderClass}`;
+                    container.appendChild(img);
+             });
+        }
+
+    }
+
+    async function load_history_count() {
+        const res = await fetch('/history_count');
+        const data = await res.json();
+        history_count = data
+
+        data.forEach(filename => {
+            const img = document.createElement('img');
+            img.src = `/objects/${filename}?t=${new Date().getTime()}`; // prevent caching
+            img.alt = filename;
+            img.className = 'rounded shadow-md w-full object-cover';
+            container.appendChild(img);
+        });
+    }
+
+    setInterval(loadHistoryImages, 5000); // refresh every 5s
+    loadHistoryImages(); // initial load
+    updateCount(); // initial load
+    updateFrame(); // initial load
+
+
+    // ------------------------
+    // Intervals
+    // ------------------------
+    setInterval(updateCount, 5000);
+    setInterval(updateFrame, 1000);
+
+</script>
+
+</body>
+</html>
