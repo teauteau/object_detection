@@ -81,7 +81,7 @@ def video_loop():
             results = model.track(
                 frame,
                 persist=True,
-                classes=[0, 1, 2, 7],        # 0 = person, 1 = bicycle, 2 = car, 7 = truck (COCO)
+                classes=[0, 1, 2, 7],        # 0 = person, 1 = bicycle, 2 = car, 7 = truck
                 verbose=False      
             )
 
@@ -157,7 +157,7 @@ def video_loop():
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
-            # wait 1 second before processing the next (most-recent) frame
+            # wait 1 second before processing the next most recent frame
             time.sleep(0.3)
     finally:
         grabber.stop()
@@ -174,7 +174,7 @@ app = Flask(__name__)
 def index():
     return render_template("index.html", count=class_counters["car"], frame=frame_display is not None)
 
-# Route to serve the latest frame
+# route to serve the latest frame
 @app.route("/frame")
 def frame():
     global frame_display
@@ -183,7 +183,6 @@ def frame():
         return Response(status=404)
     return Response(frame_display, mimetype='image/jpeg')
 
-# Optional: JSON endpoint for count (for more advanced live updates)
 @app.route("/count")
 def count():
     return jsonify({"car_count": class_counters["car"], "person_count": class_counters["person"], "bicycle_count": class_counters["bicycle"]})
@@ -192,7 +191,7 @@ def count():
 def objects_image(filename):
     return send_from_directory("objects", filename)
 
-# Return a list of all saved car images (latest first)
+# return a list of all saved car images (latest first)
 @app.route("/objects_history_images")
 def objects_history_images():
     folder = "objects"
@@ -203,6 +202,5 @@ def objects_history_images():
     return jsonify(entries)
 
 
-# ------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
